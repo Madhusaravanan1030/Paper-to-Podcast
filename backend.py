@@ -1,3 +1,4 @@
+
 """
 backend.py — All core logic for Paper-to-Podcast
 =================================================
@@ -23,12 +24,15 @@ from dotenv import load_dotenv
 load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# ─── ffmpeg path (Windows) ────────────────────────────────────────────────────
-_FFMPEG_BIN = r"C:\Users\Madhu saravanan\Downloads\ffmpeg-8.1-essentials_build\ffmpeg-8.1-essentials_build\bin"
-if _FFMPEG_BIN not in os.environ.get("PATH", ""):
-    os.environ["PATH"] = _FFMPEG_BIN + os.pathsep + os.environ.get("PATH", "")
-AudioSegment.converter = os.path.join(_FFMPEG_BIN, "ffmpeg.exe")
-AudioSegment.ffprobe   = os.path.join(_FFMPEG_BIN, "ffprobe.exe")
+# ─── ffmpeg path ──────────────────────────────────────────────────────────────
+_WIN_FFMPEG_BIN = r"C:\Users\Madhu saravanan\Downloads\ffmpeg-8.1-essentials_build\ffmpeg-8.1-essentials_build\bin"
+if os.path.isdir(_WIN_FFMPEG_BIN):
+    # Local Windows development
+    if _WIN_FFMPEG_BIN not in os.environ.get("PATH", ""):
+        os.environ["PATH"] = _WIN_FFMPEG_BIN + os.pathsep + os.environ.get("PATH", "")
+    AudioSegment.converter = os.path.join(_WIN_FFMPEG_BIN, "ffmpeg.exe")
+    AudioSegment.ffprobe   = os.path.join(_WIN_FFMPEG_BIN, "ffprobe.exe")
+# On Linux/Render, ffmpeg is installed system-wide via Dockerfile — no path override needed
 
 # ─── Config ───────────────────────────────────────────────────────────────────
 GROQ_MODEL      = "llama-3.3-70b-versatile"
