@@ -1,44 +1,43 @@
-
 """
 backend.py — All core logic for Paper-to-Podcast
 =================================================
 Handles:
   1. PDF text extraction   (pdfplumber)
   2. Podcast script generation (Groq / Llama 3)
-  3. Text-to-speech per line   (edge-tts)
+  3. Text-to-speech per line   (gTTS)
   4. Audio merging into one MP3 (pydub)
 """
 
 import os
-import asyncio
 import tempfile
-import threading
 
 import pdfplumber
 from groq import Groq
 from pydub import AudioSegment
-import edge_tts
+from gtts import gTTS
 from dotenv import load_dotenv
 
 # ─── Load .env ────────────────────────────────────────────────────────────────
 load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# ─── ffmpeg path ──────────────────────────────────────────────────────────────
+# ─── ffmpeg path ────────────────────────────────────────────────────────────────────────────
 _WIN_FFMPEG_BIN = r"C:\Users\Madhu saravanan\Downloads\ffmpeg-8.1-essentials_build\ffmpeg-8.1-essentials_build\bin"
 if os.path.isdir(_WIN_FFMPEG_BIN):
-    # Local Windows development
-    if _WIN_FFMPEG_BIN not in os.environ.get("PATH", ""):
-        os.environ["PATH"] = _WIN_FFMPEG_BIN + os.pathsep + os.environ.get("PATH", "")
+    # Local Windows — use downloaded ffmpeg
     AudioSegment.converter = os.path.join(_WIN_FFMPEG_BIN, "ffmpeg.exe")
     AudioSegment.ffprobe   = os.path.join(_WIN_FFMPEG_BIN, "ffprobe.exe")
-# On Linux/Render, ffmpeg is installed system-wide via Dockerfile — no path override needed
+else:
+    # Cloud (Render/Linux) — use imageio-ffmpeg bundled binary
+    import imageio_ffmpeg
+    AudioSegment.converter = imageio_ffmpeg.get_ffmpeg_exe()
 
 # ─── Config ───────────────────────────────────────────────────────────────────
 GROQ_MODEL      = "llama-3.3-70b-versatile"
 MAX_PAPER_CHARS = 8000
-HOST_ALEX_VOICE  = "en-US-GuyNeural"    # Run `edge-tts --list-voices` to explore
-HOST_JAMIE_VOICE = "en-US-JennyNeural"
+# gTTS uses Google TTS with different accents to distinguish the two hosts
+HOST_ALEX_VOICE  = "com"       # Alex  — standard US English accent
+HOST_JAMIE_VOICE = "co.uk"     # Jamie — British English accent
 
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -128,32 +127,10 @@ def parse_script(script: str) -> list:
 
 # ── Step 4: Text-to-Speech ───────────────────────────────────────────────────
 
-async def _tts_async(text: str, voice: str, output_path: str):
-    """Async: convert text to speech and save to file using edge-tts."""
-    communicate = edge_tts.Communicate(text, voice)
-    await communicate.save(output_path)
-
-
 def text_to_speech(text: str, voice: str, output_path: str):
-    """Synchronous wrapper for edge-tts.
-    
-    Runs the async TTS call in a brand-new thread so that asyncio.run()
-    always gets a thread without a running event loop — safe inside Gradio.
-    """
-    result = {"error": None}
-
-    def _run():
-        try:
-            asyncio.run(_tts_async(text, voice, output_path))
-        except Exception as e:
-            result["error"] = e
-
-    t = threading.Thread(target=_run, daemon=True)
-    t.start()
-    t.join()
-
-    if result["error"] is not None:
-        raise result["error"]
+    """Convert text to speech using gTTS and save to file."""
+    tts = gTTS(text=text, lang="en", tld=voice, slow=False)
+    tts.save(output_path)
 
 
 # ── Step 5: Audio Merging ────────────────────────────────────────────────────
@@ -221,7 +198,7 @@ def run_pipeline(pdf_path: str, progress_callback=None) -> tuple:
     summary = (
         f"Done!  |  Paper: {len(paper_text):,} chars  "
         f"|  {len(lines)} exchanges  "
-        f"|  Groq + edge-tts (free)\n\n---\n\n{script_display}"
+        f"|  Groq + gTTS (free)\n\n---\n\n{script_display}"
     )
 
     progress(1.0, "Done!")
