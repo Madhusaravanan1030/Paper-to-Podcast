@@ -1,0 +1,6 @@
+groq
+edge-tts
+pdfplumber
+pydub
+gradio
+python-dotenv
