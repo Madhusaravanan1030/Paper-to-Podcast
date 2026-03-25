@@ -2,7 +2,6 @@
 app.py — Gradio frontend for Paper-to-Podcast
 """
 
-import os
 import gradio as gr
 from backend import run_pipeline
 
@@ -42,4 +41,4 @@ with gr.Blocks(title="Paper-to-Podcast", theme=gr.themes.Soft()) as app:
     )
 
 if __name__ == "__main__":
-    app.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", 7860)))
+    app.launch()

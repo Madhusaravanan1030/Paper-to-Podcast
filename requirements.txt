@@ -4,3 +4,5 @@ pdfplumber
 pydub
 gradio
 python-dotenv
+
+ 
