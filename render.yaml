@@ -5,4 +5,4 @@ services:
     dockerfilePath: ./Dockerfile
     envVars:
       - key: GROQ_API_KEY
-        sync: false   # Set this manually in the Render dashboard
+        sync: false   # Set this manually in the Render dashboardpu

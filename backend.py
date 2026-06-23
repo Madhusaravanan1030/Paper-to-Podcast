@@ -1,4 +1,3 @@
-
 """
 backend.py — All core logic for Paper-to-Podcast
 =================================================
@@ -10,6 +9,7 @@ Handles:
 """
 
 import os
+import sys
 import asyncio
 import tempfile
 import threading
@@ -24,17 +24,20 @@ from dotenv import load_dotenv
 load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# ─── ffmpeg path (Windows) ────────────────────────────────────────────────────
-_FFMPEG_BIN = r"C:\Users\Madhu saravanan\Downloads\ffmpeg-8.1-essentials_build\ffmpeg-8.1-essentials_build\bin"
-if _FFMPEG_BIN not in os.environ.get("PATH", ""):
-    os.environ["PATH"] = _FFMPEG_BIN + os.pathsep + os.environ.get("PATH", "")
-AudioSegment.converter = os.path.join(_FFMPEG_BIN, "ffmpeg.exe")
-AudioSegment.ffprobe   = os.path.join(_FFMPEG_BIN, "ffprobe.exe")
+# ─── ffmpeg path: only override on Windows ────────────────────────────────────
+if sys.platform == "win32":
+    _FFMPEG_BIN = r"C:\Users\Madhu saravanan\Downloads\ffmpeg-8.1-essentials_build\ffmpeg-8.1-essentials_build\bin"
+    if os.path.exists(_FFMPEG_BIN):
+        if _FFMPEG_BIN not in os.environ.get("PATH", ""):
+            os.environ["PATH"] = _FFMPEG_BIN + os.pathsep + os.environ.get("PATH", "")
+        AudioSegment.converter = os.path.join(_FFMPEG_BIN, "ffmpeg.exe")
+        AudioSegment.ffprobe   = os.path.join(_FFMPEG_BIN, "ffprobe.exe")
+# On Linux/Docker, ffmpeg is installed system-wide via apt-get (see Dockerfile)
 
 # ─── Config ───────────────────────────────────────────────────────────────────
-GROQ_MODEL      = "llama-3.3-70b-versatile"
-MAX_PAPER_CHARS = 8000
-HOST_ALEX_VOICE  = "en-US-GuyNeural"    # Run `edge-tts --list-voices` to explore
+GROQ_MODEL       = "llama-3.3-70b-versatile"
+MAX_PAPER_CHARS  = 8000
+HOST_ALEX_VOICE  = "en-US-GuyNeural"
 HOST_JAMIE_VOICE = "en-US-JennyNeural"
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -61,7 +64,7 @@ def generate_podcast_script(paper_text: str) -> str:
     conversational two-host podcast script.
     """
     if not GROQ_API_KEY or GROQ_API_KEY == "your-groq-key-here":
-        raise ValueError("GROQ_API_KEY is not set. Please add it to your .env file.")
+        raise ValueError("GROQ_API_KEY is not set. Please add it to your .env file or environment variables.")
 
     client = Groq(api_key=GROQ_API_KEY)
 
@@ -133,7 +136,7 @@ async def _tts_async(text: str, voice: str, output_path: str):
 
 def text_to_speech(text: str, voice: str, output_path: str):
     """Synchronous wrapper for edge-tts.
-    
+
     Runs the async TTS call in a brand-new thread so that asyncio.run()
     always gets a thread without a running event loop — safe inside Gradio.
     """
