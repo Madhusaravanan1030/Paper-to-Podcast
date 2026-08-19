@@ -23,7 +23,8 @@ from dotenv import load_dotenv
 # ─── Load .env ────────────────────────────────────────────────────────────────
 load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-
+print("GROQ KEY EXISTS:", bool(GROQ_API_KEY))
+print("GROQ MODEL:", GROQ_MODEL)
 # ─── ffmpeg path: only override on Windows ────────────────────────────────────
 if sys.platform == "win32":
     _FFMPEG_BIN = r"C:\Users\Madhu saravanan\Downloads\ffmpeg-8.1-essentials_build\ffmpeg-8.1-essentials_build\bin"
