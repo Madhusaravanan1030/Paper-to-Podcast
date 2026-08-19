@@ -35,7 +35,7 @@ if sys.platform == "win32":
 # On Linux/Docker, ffmpeg is installed system-wide via apt-get (see Dockerfile)
 
 # ─── Config ───────────────────────────────────────────────────────────────────
-GROQ_MODEL       = "llama-3.3-70b-versatile"
+GROQ_MODEL       = "openai/gpt-oss-120b"
 MAX_PAPER_CHARS  = 8000
 HOST_ALEX_VOICE  = "en-US-GuyNeural"
 HOST_JAMIE_VOICE = "en-US-JennyNeural"
