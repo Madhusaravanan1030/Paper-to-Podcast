@@ -81,7 +81,7 @@ Your task: Read this research paper and turn it into a lively 5-minute podcast e
 
 Rules:
 1. Start with Alex giving an exciting intro hook (1-2 sentences)
-2. Alternate between Alex and Jamie naturally — aim for 12-18 exchanges total
+2. Alternate between Alex and Jamie naturally — aim for 20-30 exchanges total
 3. Explain the key findings in plain English — no jargon without explanation
 4. Jamie should ask at least 2 "but why does that matter?" style questions
 5. End with Jamie summarising the big takeaway in one sentence
